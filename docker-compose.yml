@@ -47,4 +47,4 @@ services:
     environment:
       PMA_HOST: '${DB_HOST}'                           # Hostname or service name of your MariaDB container
       PMA_USER: '${DB_USERNAME}'                       # Default username phpMyAdmin will try to connect with
-      PMA_PASSWORD: '${DB_PASSWORD}'                   # Corresponding password for that username
+      PMA_PASSWORD: '${DB_ROOT_PASSWORD}'                   # Corresponding password for that username
