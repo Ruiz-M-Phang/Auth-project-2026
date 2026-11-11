@@ -1,0 +1,50 @@
+services:
+# PHP service configuration
+ php:
+    image: wodby/php:latest                             # Use the latest PHP image from wodby
+    container_name: appjam_php                         # Name of the container for easier reference
+    volumes:
+      - './:/var/www/html'                              # Mount current directory (project files) to /var/www/html inside the container
+ 
+ # nginx web service configuration
+ nginx:
+    image: nginx:latest                                 # Use the latest official nginx image
+    container_name: appjam_nginx                       # Name of the container for easier reference
+    ports:
+      - 88:80                                           # Map host port 88 to container port 80
+    links:
+      - php                                             # Link Nginx container to the PHP container for communication
+    volumes:
+      - './:/var/www/html'                              # Share the same project files with Nginx
+      - './docker:/etc/nginx/conf.d'                    # Mount custom Nginx configuration directory from host
+    depends_on:
+      - php                                             # Ensure PHP container starts before Nginx
+      - mariadb                                         # Ensure mariadb container starts before Nginx
+
+# mariadb db-engine service configuration
+ mariadb:
+    image: mariadb:latest                               # Use the latest mariadb image
+    container_name: appjam_mariadb                     # Name of the container for easier reference
+    volumes:
+        - './:/var/www/html'                            # Share the same project files with mariadb
+        - '/docker/sql/:/docker-entrypoint-initdb.d'    # Mount custom sql directory from host
+    environment:
+      MYSQL_DATABASE: '${DB_NAME}'                      # The name of the database to create (pulled from .env file)
+      MYSQL_USER: '${DB_USERNAME}'                      # The username for your database
+      MYSQL_PASSWORD: '${DB_PASSWORD}'                  # The password for that user
+      MYSQL_ROOT_PASSWORD: '${DB_ROOT_PASSWORD}'        # The root (admin) password for the MariaDB server
+    ports:
+      -  3369:3306                                      # Map host port 3369 to container port 3306 (default MySQL/MariaDB port)
+                                                        # You can connect to the DB from your host using port 3369
+ # phpmyadmin service configuration
+ phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: appjam_phpmyadmin                 # Name of the container for easier reference
+    ports:
+      - 8805:80                                        # Expose phpMyAdmin on http://localhost:8805
+    depends_on:
+      - mariadb                                        # Ensure the MariaDB container starts before phpMyAdmin
+    environment:
+      PMA_HOST: '${DB_HOST}'                           # Hostname or service name of your MariaDB container
+      PMA_USER: '${DB_USERNAME}'                       # Default username phpMyAdmin will try to connect with
+      PMA_PASSWORD: '${DB_PASSWORD}'                   # Corresponding password for that username
